@@ -17,12 +17,19 @@ def excel_to_xml(file_name):
         sheet = wb[sheet_name]
         image_loader = SheetImages(sheet_name, sheet._images)
 
+        # store column metadata info
+        column_metadata = ET.SubElement(sheet_root, "column_metadata")
+        for col, dim in ws.column_dimensions.items():
+            col_meta_root = ET.SubElement(column_metadata, col)
+            col_meta_root.set("width", str(dim.width))
+
         for i, row in enumerate(sheet.rows):
             row_root = ET.Element("row")
-            for cell in row:
+            for j, cell in enumerate(row):
                 cell_root = ET.SubElement(row_root, "cell")
                 cell_root.text = str(cell.value)
                 cell_coor = cell.coordinate
+
                 # mark if cell contains image
                 if image_loader.image_in(cell_coor): 
                     cell_root.set("image", image_loader.get_image_file_name(cell_coor))
@@ -50,6 +57,11 @@ def xml_to_excel():
         sheet_name = sheet.get("name")
         ws = workbook.add_worksheet(sheet_name)
 
+        # apply column metadata
+        for col in sheet.find("column_metadata"):
+            ws_col = f"{col.tag}:{col.tag}"
+            ws.set_column(ws_col, float(col.get("width")))
+
         # parse row xml to its data
         for i, row in enumerate(sheet.findall("row")):
             # format row height
@@ -70,5 +82,5 @@ def xml_to_excel():
 
 if __name__ == "__main__":
     file_name = "excel/sample.xlsx"
-    excel_to_xml(file_name)
+    # excel_to_xml(file_name)
     xml_to_excel()
