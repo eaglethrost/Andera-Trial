@@ -82,5 +82,5 @@ def xml_to_excel():
 
 if __name__ == "__main__":
     file_name = "excel/sample.xlsx"
-    # excel_to_xml(file_name)
+    excel_to_xml(file_name)
     xml_to_excel()
