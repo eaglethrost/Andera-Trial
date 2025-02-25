@@ -1,8 +1,11 @@
 import os
 
 import openpyxl
+from openpyxl_image_loader import SheetImageLoader
 import xlsxwriter
 import xml.etree.ElementTree as ET
+
+from helpers import SheetImages
 
 def excel_to_xml(file_name):
     wb = openpyxl.load_workbook(file_name)
@@ -12,11 +15,16 @@ def excel_to_xml(file_name):
         sheet_name = wb_sheet.title
         sheet_root = ET.Element("worksheet", {"name": sheet_name}) 
         sheet = wb[sheet_name]
+        image_loader = SheetImages(sheet_name, sheet._images)
+
         for row in sheet.rows:
             row_root = ET.Element("row")
-            for excel_cell in row:
-                cell = ET.SubElement(row_root, "cell")
-                cell.text = str(excel_cell.value)
+            for cell in row:
+                cell_root = ET.SubElement(row_root, "cell")
+                cell_root.text = str(cell.value)
+                cell_coor = cell.coordinate
+                if image_loader.image_in(cell_coor): 
+                    cell_root.set("image", image_loader.get_image_file_name(cell_coor))
             sheet_root.append(row_root)
         root.append(sheet_root)
         
@@ -38,9 +46,12 @@ def xml_to_excel():
         for i, row in enumerate(sheet.findall("row")):
             for j, cell in enumerate(row.findall("cell")):
                 data = cell.text
-                if (data != "None"):
+                if data != "None":
                     ws.write(i, j, data)
-
+                # write image if it exists in the cell
+                if cell.get("image"):
+                    ws.insert_image(i, j, cell.get("image"))
+                    
     workbook.close()
     return
 
