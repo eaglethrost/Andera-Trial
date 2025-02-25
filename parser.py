@@ -1,9 +1,12 @@
+import os
+
 import openpyxl
+import xlsxwriter
 import xml.etree.ElementTree as ET
 
 def excel_to_xml(file_name):
     wb = openpyxl.load_workbook(file_name)
-    root = ET.Element("workbook")
+    root = ET.Element("workbook", {"title": file_name})
 
     for wb_sheet in wb.worksheets:
         sheet_name = wb_sheet.title
@@ -21,8 +24,27 @@ def excel_to_xml(file_name):
     tree.write("xml/input.xml")
         
 def xml_to_excel():
+    output_file = "excel/output.xlsx"
+    if os.path.exists(output_file):
+        os.remove(output_file)
+    tree = ET.parse("xml/input.xml")
+    root = tree.getroot()
+
+    workbook = xlsxwriter.Workbook(output_file)
+    for sheet in root.findall("worksheet"):
+        sheet_name = sheet.get("name")
+        ws = workbook.add_worksheet(sheet_name)
+        # parse row xml to its data
+        for i, row in enumerate(sheet.findall("row")):
+            for j, cell in enumerate(row.findall("cell")):
+                data = cell.text
+                if (data != "None"):
+                    ws.write(i, j, data)
+
+    workbook.close()
     return
 
 if __name__ == "__main__":
     file_name = "excel/sample.xlsx"
-    excel_to_xml(file_name)
+    # excel_to_xml(file_name)
+    xml_to_excel()
