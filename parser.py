@@ -5,7 +5,7 @@ from openpyxl_image_loader import SheetImageLoader
 import xlsxwriter
 import xml.etree.ElementTree as ET
 
-from helpers import SheetImages, unzip_excel, rezip_excel
+from helpers import SheetImages, ExcelHelper
 
 def excel_to_xml(file_name):
     wb = openpyxl.load_workbook(file_name)
@@ -85,7 +85,8 @@ if __name__ == "__main__":
     sample_zip = "excel_xml/sample_zip"
     sample_rezip = "excel_xml/sample_rezip.xlsx"
 
-    unzip_excel(output_file, "excel_xml/output_zip")
+    excel_helper = ExcelHelper()
+    excel_helper.unzip_excel(output_file, "excel_xml/output_zip")
     # rezip_excel(sample_zip, sample_rezip)
     # excel_to_xml(file_name)
     # xml_to_excel(output_file)

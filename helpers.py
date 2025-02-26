@@ -32,66 +32,49 @@ class SheetImages:
     def image_in(self, cell):
         return cell in self.image_cells
     
-def unzip_excel(file_path, extract_to):
-    """Unzip an Excel file (.xlsx) to a directory and get its underlying xmls"""
-    with zipfile.ZipFile(file_path, 'r') as zip_ref:
-        zip_ref.extractall(extract_to)
+class ExcelHelper:
+    def __init__(self):
+        pass
 
-def rezip_excel(folder_path, output_file):
-    """Recompress the folder back into a .xlsx file"""
-    with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zip_ref:
-        for root, _, files in os.walk(folder_path):
-            for file in files:
-                full_path = os.path.join(root, file)
-                # Preserve the internal structure of the Excel file
-                arcname = os.path.relpath(full_path, folder_path)
-                zip_ref.write(full_path, arcname)
+    def unzip_excel(file_path, extract_to):
+        """Unzip an Excel file (.xlsx) to a directory and get its underlying xmls"""
+        with zipfile.ZipFile(file_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_to)
 
-def extract_sheet_drawings(sheet_name):
-    # map sheet name to worksheet xml using the workbook.xml.rels
+    def rezip_excel(folder_path, output_file):
+        """Recompress the folder back into a .xlsx file"""
+        with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zip_ref:
+            for root, _, files in os.walk(folder_path):
+                for file in files:
+                    full_path = os.path.join(root, file)
+                    # Preserve the internal structure of the Excel file
+                    arcname = os.path.relpath(full_path, folder_path)
+                    zip_ref.write(full_path, arcname)
 
-    # check if sheet xml has a drawing tag. if so, use worksheet/_rels to get the file path of sheet drawings
+    def extract_sheet_drawings(sheet_name):
+        # map sheet name to worksheet xml using the workbook.xml.rels
 
-    # in the sheet drawings, find all xdr:oneCellAnchor or xdr:twoCellAnchor tags
+        # check if sheet xml has a drawing tag. if so, use worksheet/_rels to get the file path of sheet drawings
 
-    # store each anchor tags, currently in its raw xml string first
+        # in the sheet drawings, find all xdr:oneCellAnchor or xdr:twoCellAnchor tags
 
-    # check if there is a drawing.xml.rels we need to parse too
+        # store each anchor tags, currently in its raw xml string first
 
-    # store all media images in memory or just write to disk immediately
-    
-    sheet_drawings = {
-        "1.a Screenshots": [
-            "<xdr:oneCellAnchor></xdr:oneCellAnchor>",
-            "<xdr:oneCellAnchor></xdr:oneCellAnchor>",
-        ]
-    }    
+        # check if there is a drawing.xml.rels we need to parse too
 
-    media = {
-        "image1.png": io.BytesIO(data),
-        "image2.png": io.BytesIO(data),
-    }
+        # store all media images in memory or just write to disk immediately
 
-    worksheet_rels = {
-        "sheet2.xml.rels": {
-            "Id1": {
-                "Type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image",
-                "Target": "../media/image2.jpg"
-            }
-        }
-    }
+        return
 
-    return
+    def inject_sheet_drawings(sheet_name, sheet_drawings):
+        # unzip excel
 
-def inject_sheet_drawings(sheet_name, sheet_drawings):
-    # unzip excel
+        # if there is at least 1 drawing, 
+        #   create a <drawing> tag in the end of the sheet xml 
+        #   create a .rels file in worksheets/_rels file that links to a drawings xml file in /drawings
 
-    # if there is at least 1 drawing, 
-    #   create a <drawing> tag in the end of the sheet xml 
-    #   create a .rels file in worksheets/_rels file that links to a drawings xml file in /drawings
+        # init drawings file with correct xml headers & schema
 
-    # init drawings file with correct xml headers & schema
+        # add all sheet drawings xml to the drawing file
 
-    # add all sheet drawings xml to the drawing file
-
-    return
+        return
