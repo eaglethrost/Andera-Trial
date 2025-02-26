@@ -113,13 +113,13 @@ class ExcelParser:
         return
 
 if __name__ == "__main__":
-    input_file = "excel_xml/sample_copy.xlsx"
+    input_file = "excel/sample.xlsx"
     output_file = "excel/output.xlsx"
 
     excel_parser = ExcelParser(input_file, output_file)
     helper = ExcelHelper()
     # helper.unzip_excel("excel_xml/sample_copy.xlsx", "excel_xml/sample_copy")
-    # helper.rezip_excel("excel_xml/output_zip", "excel/output.xlsx")
+    # helper.rezip_excel("excel_xml/output_zip", "excel/output2.xlsx")
     # helper.unzip_excel("excel/output.xlsx", "excel_xml/output_rezip")
 
     drawings_data = excel_parser.excel_to_xml()

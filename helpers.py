@@ -184,25 +184,39 @@ class ExcelHelper:
         return
 
     def add_sheet_drawings(self, drawings_data, output_zip_folder):
+        content_path = f"{output_zip_folder}/[Content_Types].xml"
         for i, (sheet_name, drawings) in enumerate(drawings_data.items()):
             # create drawing.xml file in drawings/
             with open(f"{output_zip_folder}/xl/drawings/drawing{i+1}.xml", "w") as file:
                 # create template
-                header = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing"xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+#                 content = '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+# <xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing"
+#     xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+# </xdr:wsDr>
+#                          '''
+#                 file.write(content)
+                header = '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing"
+    xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+'''
                 file.write(header)
                 # add the string xmls to the template child
                 for drawing in drawings:
                     file.write(drawing)
                 closing = '</xdr:wsDr>'
                 file.write(closing)
+
+            # add sheet to [Content_Types.xml]
+            draw_file = f"/xl/drawings/drawing{i+1}.xml"
+            self.add_draw_file_to_content_type(draw_file, content_path)
+
         return
     
     def add_sheet_rels(self, sheet_drawings, output_zip_folder):
         for sheet_name, relationships in sheet_drawings["rels"].items():
             # add drawing tag in the end of the sheet.xml
             ws_path = f"{output_zip_folder}/xl/worksheets/{sheet_name}"
-            # if sheet_name == "sheet2.xml":
-            #     self.add_drawing_tag(ws_path)
+            self.add_drawing_tag(ws_path)
 
             # create sheet.xml.rels file
             ws_rels_path = f"{output_zip_folder}/xl/worksheets/_rels/{sheet_name}.rels"
@@ -221,32 +235,31 @@ class ExcelHelper:
                 # Create the XML tree and write to file
                 tree = ET.ElementTree(root)
                 tree.write(ws_rels_path, encoding="UTF-8", xml_declaration=True)
-
         return
     
     def add_drawing_tag(self, ws_path):
-        ET.register_namespace('', "http://schemas.openxmlformats.org/spreadsheetml/2006/main")
+        xml_path = ws_path
 
-        # Parse the XML file
-        tree = ET.parse(ws_path)
-        root = tree.getroot()
+        with open(xml_path, "r", encoding="utf-8") as file:
+            xml_content = file.read()
 
-        # Define namespace mapping to strip it from tags
-        namespace = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
-        ns = {"main": namespace}
+        # Insert the <drawing> tag right before </worksheet>
+        drawing_tag = '\n    <drawing r:id="rId1"/>\n'
+        xml_content = xml_content.replace("</worksheet>", drawing_tag + "</worksheet>")
 
-        # Remove namespace prefix from tags for easier searching
-        for elem in root.iter():
-            if elem.tag.startswith(f"{{{namespace}}}"):
-                elem.tag = elem.tag[len(f"{{{namespace}}}"):]  # Strip namespace
+        # Write back the modified content
+        with open(xml_path, "w", encoding="utf-8") as file:
+            file.write(xml_content)
+    
+    def add_draw_file_to_content_type(self, draw_file, content_path):
+        with open(content_path, "r", encoding="utf-8") as file:
+            xml_content = file.read()
 
-        # Find <sheetData> to place <drawing> after it
-        sheet_data = root.find("sheetData")
+        # Insert the draw file tag right before </Types>
+        drawing_tag = f'\n    <Override PartName="{draw_file}" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>\n'
+        xml_content = xml_content.replace("</Types>", drawing_tag + "</Types>")
 
-        # Create the <drawing> tag
-        drawing_tag = ET.Element("drawing", {"r:id": "rId1"})
-        root.append(drawing_tag)
-
-        # Save back to the XML file without adding namespace prefixes
-        tree.write(ws_path, encoding="UTF-8", xml_declaration=True)
-
+        # Write back the modified content
+        with open(content_path, "w", encoding="utf-8") as file:
+            file.write(xml_content)
+                
