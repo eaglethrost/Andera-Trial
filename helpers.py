@@ -51,7 +51,7 @@ class ExcelHelper:
                     arcname = os.path.relpath(full_path, folder_path)
                     zip_ref.write(full_path, arcname)
 
-    def extract_sheet_drawings(sheet_name):
+    def extract_sheet_drawings(unzip_folder, sheet_name):
         # map sheet name to worksheet xml using the workbook.xml.rels
 
         # check if sheet xml has a drawing tag. if so, use worksheet/_rels to get the file path of sheet drawings
