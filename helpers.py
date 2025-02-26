@@ -4,6 +4,7 @@ import io
 import os
 import openpyxl
 import xml.etree.ElementTree as ET
+from PIL import Image
 
 import zipfile
 import shutil
@@ -17,6 +18,15 @@ def worksheet_search_tag(tag):
 tags = {
     "wb_rel": "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
 }
+
+def process_anchor(anchor):
+    s = str(anchor)
+    s = s.replace("ns0", "xdr")
+    s = s.replace("ns1", "a")
+    s = s.replace("ns2", "a16")
+    s = s[2:]
+    s = s[:-1]
+    return s
 
 class SheetImages:
     def __init__(self, sheet_name, sheet_images):
@@ -84,19 +94,57 @@ class ExcelHelper:
         ws_rel_tree = ET.parse(ws_rel_path)
         ws_rel_root = ws_rel_tree.getroot()
         ws_drawing_path = ""
+
+        ws_rels = {}
+        ws_rels[ws_name] = {}
         for child in ws_rel_root:
             if child.get("Id") == ws_drawing_rId:
                 ws_drawing_path = child.get("Target")
+            ws_rels[ws_name][child.get("Id")] = {
+                "Type": child.get("Type"),
+                "Target": child.get("Target")
+            }
 
         # in the sheet drawings, find all xdr:oneCellAnchor or xdr:twoCellAnchor tags
+        ws_drawing_path = ws_drawing_path[3:]
+        ws_drawing_path = f"{zip_folder}/xl/{ws_drawing_path}"
+        ws_drawing_tree = ET.parse(ws_drawing_path)
+        ws_drawing_root = ws_drawing_tree.getroot()
+
+        anchor_tags = []
+        for child in ws_drawing_root:
+            if child.tag.endswith("oneCellAnchor") or child.tag.endswith("twoCellAnchor"):
+                anchor_tag_xml = ET.tostring(child)
+                anchor_tags.append(process_anchor(anchor_tag_xml))
 
         # store each anchor tags, currently in its raw xml string first
-
+        sheet_drawings = {
+            sheet_name: anchor_tags
+        }
+        
         # check if there is a drawing.xml.rels we need to parse too
+        ws_drawing_file_name = ws_drawing_path.split("/")[-1]
+        ws_drawing_rels_path = f"{zip_folder}/xl/drawings/_rels/{ws_drawing_file_name}.rels"
 
         # store all media images in memory or just write to disk immediately
-
-        return
+        media_images = {}
+        if os.path.exists(ws_drawing_rels_path):
+            ws_draw_rels_tree = ET.parse(ws_drawing_rels_path)
+            ws_draw_rels_root = ws_draw_rels_tree.getroot()
+            for child in ws_draw_rels_root:
+                img_path = child.get("Target")
+                img_path = img_path[3:]
+                file_name = img_path.split("/")[-1]
+                img_path = f"{zip_folder}/xl/{img_path}"
+                img = Image.open(img_path)
+                img_data = img.tobytes()
+                media_images[file_name] = img_data
+                
+        return {
+            "drawings": sheet_drawings,
+            "images": media_images,
+            "rels": ws_rels
+        }
     
     def get_sheet_name(self, zip_folder, sheet_name):
         workbook_path = f"{zip_folder}/xl/workbook.xml"

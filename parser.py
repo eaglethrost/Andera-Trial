@@ -4,6 +4,7 @@ import openpyxl
 from openpyxl_image_loader import SheetImageLoader
 import xlsxwriter
 import xml.etree.ElementTree as ET
+import pprint
 
 from helpers import SheetImages, ExcelHelper
 
@@ -22,6 +23,11 @@ class ExcelParser:
 
         # unzip excel to process its xmls
         self.excel_helper.unzip_excel(file_name, self.input_zip)
+        drawings_data = {
+            "drawings": {},
+            "images": {},
+            "rels": {}
+        }
 
         for ws in wb.worksheets:
             sheet_name = ws.title
@@ -30,8 +36,12 @@ class ExcelParser:
             image_loader = SheetImages(sheet_name, sheet._images)
 
             # extract sheet drawings
-            self.excel_helper.extract_sheet_drawings(self.input_zip, sheet_name)
-
+            res = self.excel_helper.extract_sheet_drawings(self.input_zip, sheet_name)
+            if res:
+                drawings_data["drawings"] = {**drawings_data["drawings"], **res["drawings"]}
+                drawings_data["images"] = {**drawings_data["images"], **res["images"]}
+                drawings_data["rels"] = {**drawings_data["rels"], **res["rels"]}
+        
             # store column metadata info
             column_metadata = ET.SubElement(sheet_root, "column_metadata")
             for col, dim in ws.column_dimensions.items():
@@ -58,6 +68,9 @@ class ExcelParser:
             
         tree = ET.ElementTree(root)
         tree.write("xml/input.xml")
+
+        pprint.pprint(drawings_data["rels"])
+        return drawings_data
         
     def xml_to_excel(self):
         output_file = self.output_file
