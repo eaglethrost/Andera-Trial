@@ -189,12 +189,6 @@ class ExcelHelper:
             # create drawing.xml file in drawings/
             with open(f"{output_zip_folder}/xl/drawings/drawing{i+1}.xml", "w") as file:
                 # create template
-#                 content = '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-# <xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing"
-#     xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
-# </xdr:wsDr>
-#                          '''
-#                 file.write(content)
                 header = '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing"
     xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
@@ -239,27 +233,20 @@ class ExcelHelper:
     
     def add_drawing_tag(self, ws_path):
         xml_path = ws_path
-
         with open(xml_path, "r", encoding="utf-8") as file:
             xml_content = file.read()
-
-        # Insert the <drawing> tag right before </worksheet>
+        # insert the <drawing> tag right before </worksheet>
         drawing_tag = '\n    <drawing r:id="rId1"/>\n'
         xml_content = xml_content.replace("</worksheet>", drawing_tag + "</worksheet>")
-
-        # Write back the modified content
         with open(xml_path, "w", encoding="utf-8") as file:
             file.write(xml_content)
     
     def add_draw_file_to_content_type(self, draw_file, content_path):
         with open(content_path, "r", encoding="utf-8") as file:
             xml_content = file.read()
-
-        # Insert the draw file tag right before </Types>
+        # insert the draw file tag right before </Types>
         drawing_tag = f'\n    <Override PartName="{draw_file}" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>\n'
         xml_content = xml_content.replace("</Types>", drawing_tag + "</Types>")
-
-        # Write back the modified content
         with open(content_path, "w", encoding="utf-8") as file:
             file.write(xml_content)
                 
