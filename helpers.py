@@ -3,9 +3,20 @@ import string
 import io
 import os
 import openpyxl
+import xml.etree.ElementTree as ET
 
 import zipfile
 import shutil
+
+def workbook_search_tag(tag):
+    return ".//{*}" + tag
+
+def worksheet_search_tag(tag):
+    return "ns0:" + tag
+
+tags = {
+    "wb_rel": "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
+}
 
 class SheetImages:
     def __init__(self, sheet_name, sheet_images):
@@ -51,10 +62,31 @@ class ExcelHelper:
                     arcname = os.path.relpath(full_path, zip_folder)
                     zip_ref.write(full_path, arcname)
 
-    def extract_sheet_drawings(self, unzip_folder, sheet_name):
+    def extract_sheet_drawings(self, zip_folder, sheet_name):
         # map sheet name to worksheet xml using the workbook.xml.rels
+        ws_file = self.get_sheet_name(zip_folder, sheet_name)
 
-        # check if sheet xml has a drawing tag. if so, use worksheet/_rels to get the file path of sheet drawings
+        # check if sheet xml has a drawing tag
+        ws_path = f"{zip_folder}/xl/{ws_file}"
+        ws_tree = ET.parse(ws_path)
+        ws_root = ws_tree.getroot()
+        ws_drawing_rId = None
+        for child in ws_root:
+            if child.tag.endswith("drawing"):
+                tag = tags["wb_rel"]+'id'
+                ws_drawing_rId = child.get(tag)
+        if ws_drawing_rId == None:
+            return
+        
+        # if so, use worksheet/_rels to get the file path of sheet drawings
+        ws_name = ws_file.split("worksheets/")[-1]
+        ws_rel_path = f"{zip_folder}/xl/worksheets/_rels/{ws_name}.rels"
+        ws_rel_tree = ET.parse(ws_rel_path)
+        ws_rel_root = ws_rel_tree.getroot()
+        ws_drawing_path = ""
+        for child in ws_rel_root:
+            if child.get("Id") == ws_drawing_rId:
+                ws_drawing_path = child.get("Target")
 
         # in the sheet drawings, find all xdr:oneCellAnchor or xdr:twoCellAnchor tags
 
@@ -65,7 +97,26 @@ class ExcelHelper:
         # store all media images in memory or just write to disk immediately
 
         return
+    
+    def get_sheet_name(self, zip_folder, sheet_name):
+        workbook_path = f"{zip_folder}/xl/workbook.xml"
+        wb_tree = ET.parse(workbook_path)
+        root = wb_tree.getroot()
 
+        rId = ""
+        for sheet in root.find(workbook_search_tag("sheets")):
+            if sheet.get("name") == sheet_name:
+                tag = tags["wb_rel"]+'id'
+                rId = sheet.get(tag)
+                break
+        
+        wb_rels_tree = ET.parse(f"{zip_folder}/xl/_rels/workbook.xml.rels")
+        root = wb_rels_tree.getroot()
+        for rel in root:
+            if rel.get("Id") == rId:
+                path = rel.get("Target")
+                return path
+        
     def inject_sheet_drawings(self, sheet_name, sheet_drawings):
         # unzip excel
 
@@ -78,3 +129,4 @@ class ExcelHelper:
         # add all sheet drawings xml to the drawing file
 
         return
+    

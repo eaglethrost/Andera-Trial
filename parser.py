@@ -13,7 +13,7 @@ class ExcelParser:
         self.output_file = output_file
         self.input_zip = "excel_xml/sample_zip"
         self.output_zip = "excel_xml/output_zip"
-        self.excel_helper = ExcelHelper( )
+        self.excel_helper = ExcelHelper()
     
     def excel_to_xml(self):
         file_name = self.input_file
@@ -28,6 +28,9 @@ class ExcelParser:
             sheet_root = ET.Element("worksheet", {"name": sheet_name}) 
             sheet = wb[sheet_name]
             image_loader = SheetImages(sheet_name, sheet._images)
+
+            # extract sheet drawings
+            self.excel_helper.extract_sheet_drawings(self.input_zip, sheet_name)
 
             # store column metadata info
             column_metadata = ET.SubElement(sheet_root, "column_metadata")
