@@ -169,11 +169,12 @@ class ExcelHelper:
         if len(sheet_drawings["drawings"]) > 0:
             self.create_drawing_folders(output_zip_folder)
 
-        # init drawings file with correct xml headers & schema
+        # add all sheet drawings xml to the drawing file
         self.add_sheet_drawings(sheet_drawings["drawings"], output_zip_folder)
 
-        # add all sheet drawings xml to the drawing file
-
+        # add relations
+        self.add_sheet_rels(sheet_drawings, output_zip_folder)
+        
         return
     
     def create_drawing_folders(self, output_zip_folder):
@@ -181,19 +182,10 @@ class ExcelHelper:
         os.makedirs(f"{output_zip_folder}/xl/drawings", exist_ok=True)
         os.makedirs(f"{output_zip_folder}/xl/drawings/_rels", exist_ok=True)
         return
-    
-    def add_sheet_rels(self):
-        # add drawing tag in the end of the sheet.xml
 
-        # create sheet.xml.rels file
-
-        # put rel inside template
-        return
-    
     def add_sheet_drawings(self, drawings_data, output_zip_folder):
         for i, (sheet_name, drawings) in enumerate(drawings_data.items()):
             # create drawing.xml file in drawings/
-            print(i, " : ", sheet_name)
             with open(f"{output_zip_folder}/xl/drawings/drawing{i+1}.xml", "w") as file:
                 # create template
                 header = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing"xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
@@ -205,3 +197,56 @@ class ExcelHelper:
                 file.write(closing)
         return
     
+    def add_sheet_rels(self, sheet_drawings, output_zip_folder):
+        for sheet_name, relationships in sheet_drawings["rels"].items():
+            # add drawing tag in the end of the sheet.xml
+            ws_path = f"{output_zip_folder}/xl/worksheets/{sheet_name}"
+            # if sheet_name == "sheet2.xml":
+            #     self.add_drawing_tag(ws_path)
+
+            # create sheet.xml.rels file
+            ws_rels_path = f"{output_zip_folder}/xl/worksheets/_rels/{sheet_name}.rels"
+            with open(ws_rels_path, "w") as file:
+                # put rel inside template
+                root = ET.Element("Relationships", {
+                    "xmlns": "http://schemas.openxmlformats.org/package/2006/relationships"
+                })
+                # add relationship
+                for rel_id, attributes in relationships.items():
+                    ET.SubElement(root, "Relationship", {
+                        "Id": rel_id,
+                        "Type": attributes["Type"],
+                        "Target": attributes["Target"]
+                    })
+                # Create the XML tree and write to file
+                tree = ET.ElementTree(root)
+                tree.write(ws_rels_path, encoding="UTF-8", xml_declaration=True)
+
+        return
+    
+    def add_drawing_tag(self, ws_path):
+        ET.register_namespace('', "http://schemas.openxmlformats.org/spreadsheetml/2006/main")
+
+        # Parse the XML file
+        tree = ET.parse(ws_path)
+        root = tree.getroot()
+
+        # Define namespace mapping to strip it from tags
+        namespace = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+        ns = {"main": namespace}
+
+        # Remove namespace prefix from tags for easier searching
+        for elem in root.iter():
+            if elem.tag.startswith(f"{{{namespace}}}"):
+                elem.tag = elem.tag[len(f"{{{namespace}}}"):]  # Strip namespace
+
+        # Find <sheetData> to place <drawing> after it
+        sheet_data = root.find("sheetData")
+
+        # Create the <drawing> tag
+        drawing_tag = ET.Element("drawing", {"r:id": "rId1"})
+        root.append(drawing_tag)
+
+        # Save back to the XML file without adding namespace prefixes
+        tree.write(ws_path, encoding="UTF-8", xml_declaration=True)
+
