@@ -69,10 +69,9 @@ class ExcelParser:
         tree = ET.ElementTree(root)
         tree.write("xml/input.xml")
 
-        pprint.pprint(drawings_data["rels"])
         return drawings_data
         
-    def xml_to_excel(self):
+    def xml_to_excel(self, drawings_data):
         output_file = self.output_file
         if os.path.exists(output_file):
             os.remove(output_file)
@@ -80,7 +79,6 @@ class ExcelParser:
         root = tree.getroot()
 
         workbook = xlsxwriter.Workbook(output_file)
-
         for sheet in root.findall("worksheet"):
             sheet_name = sheet.get("name")
             ws = workbook.add_worksheet(sheet_name)
@@ -102,10 +100,14 @@ class ExcelParser:
                     if data != "None":
                         ws.write(i, j, data)
                     # write image if it exists in the cell
-                    if "image" in cell.attrib:
-                        ws.insert_image(i, j, cell.get("image"))
+                    # if "image" in cell.attrib:
+                    #     ws.insert_image(i, j, cell.get("image"))
                         
         workbook.close()
+        # re-add drawings
+        self.excel_helper.unzip_excel("excel/output.xlsx", "excel_xml/output")
+        self.excel_helper.inject_sheet_drawings(drawings_data)
+
         return
 
 if __name__ == "__main__":
@@ -113,6 +115,10 @@ if __name__ == "__main__":
     output_file = "excel/output.xlsx"
 
     excel_parser = ExcelParser(input_file, output_file)
+    helper = ExcelHelper()
+    # helper.unzip_excel("excel_xml/sample_copy.xlsx", "excel_xml/sample_copy")
+    # helper.rezip_excel("excel_xml/sample_copy", "excel_xml/sample_rezip.xlsx")
 
-    excel_parser.excel_to_xml()
-    # excel_parser.xml_to_excel()
+    drawings_data = excel_parser.excel_to_xml()
+    # print(pprint.pprint(drawings_data["drawings"]))
+    excel_parser.xml_to_excel(drawings_data)

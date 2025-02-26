@@ -165,9 +165,7 @@ class ExcelHelper:
                 path = rel.get("Target")
                 return path
         
-    def inject_sheet_drawings(self, sheet_name, sheet_drawings):
-        # unzip excel
-
+    def inject_sheet_drawings(self, sheet_drawings):
         # if there is at least 1 drawing, 
         #   create a <drawing> tag in the end of the sheet xml 
         #   create a .rels file in worksheets/_rels file that links to a drawings xml file in /drawings
@@ -175,6 +173,29 @@ class ExcelHelper:
         # init drawings file with correct xml headers & schema
 
         # add all sheet drawings xml to the drawing file
+
+        return
+    
+    def create_drawing_folders():
+        # worksheet/_rels
+        # drawings
+        # drawings/_rels
+        return
+    
+    def add_sheet_rels(self):
+        # add drawing tag in the end of the sheet.xml
+
+        # create sheet.xml.rels file
+
+        # put rel inside template
+        return
+    
+    def add_sheet_drawings(self):
+        # create drawing.xml file in drawings/
+
+        # create template
+
+        # add the string xmls to the template child
 
         return
     
