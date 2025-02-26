@@ -1,7 +1,11 @@
 # inspired by https://github.com/ultr4nerd/openpyxl-image-loader/blob/master/openpyxl_image_loader/sheet_image_loader.py
 import string
 import io
+import os
 import openpyxl
+
+import zipfile
+import shutil
 
 class SheetImages:
     def __init__(self, sheet_name, sheet_images):
@@ -27,3 +31,18 @@ class SheetImages:
 
     def image_in(self, cell):
         return cell in self.image_cells
+    
+def unzip_excel(file_path, extract_to):
+    """Unzip an Excel file (.xlsx) to a directory and get its underlying xmls"""
+    with zipfile.ZipFile(file_path, 'r') as zip_ref:
+        zip_ref.extractall(extract_to)
+
+def rezip_excel(folder_path, output_file):
+    """Recompress the folder back into a .xlsx file"""
+    with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zip_ref:
+        for root, _, files in os.walk(folder_path):
+            for file in files:
+                full_path = os.path.join(root, file)
+                # Preserve the internal structure of the Excel file
+                arcname = os.path.relpath(full_path, folder_path)
+                zip_ref.write(full_path, arcname)
