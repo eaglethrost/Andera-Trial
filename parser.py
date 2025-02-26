@@ -44,8 +44,7 @@ def excel_to_xml(file_name):
     tree = ET.ElementTree(root)
     tree.write("xml/input.xml")
         
-def xml_to_excel():
-    output_file = "excel/output.xlsx"
+def xml_to_excel(output_file):
     if os.path.exists(output_file):
         os.remove(output_file)
     tree = ET.parse("xml/input.xml")
@@ -74,18 +73,19 @@ def xml_to_excel():
                 if data != "None":
                     ws.write(i, j, data)
                 # write image if it exists in the cell
-                if "image" in cell.attrib:
-                    ws.insert_image(i, j, cell.get("image"))
+                # if "image" in cell.attrib:
+                #     ws.insert_image(i, j, cell.get("image"))
                     
     workbook.close()
     return
 
 if __name__ == "__main__":
     file_name = "excel/sample.xlsx"
+    output_file = "excel/output.xlsx"
     sample_zip = "excel_xml/sample_zip"
     sample_rezip = "excel_xml/sample_rezip.xlsx"
 
-    # unzip_excel(file_name, sample_zip)
+    unzip_excel(output_file, "excel_xml/output_zip")
     # rezip_excel(sample_zip, sample_rezip)
     # excel_to_xml(file_name)
-    # xml_to_excel()
+    # xml_to_excel(output_file)

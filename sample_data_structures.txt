@@ -1,0 +1,20 @@
+sheet_drawings = {
+    "1.a Screenshots": [
+        "<xdr:oneCellAnchor></xdr:oneCellAnchor>",
+        "<xdr:oneCellAnchor></xdr:oneCellAnchor>",
+    ]
+}    
+
+media = {
+    "image1.png": io.BytesIO(data),
+    "image2.png": io.BytesIO(data),
+}
+
+worksheet_rels = {
+    "sheet2.xml.rels": {
+        "Id1": {
+            "Type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image",
+            "Target": "../media/image2.jpg"
+        }
+    }
+}

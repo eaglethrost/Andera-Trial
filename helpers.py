@@ -46,3 +46,52 @@ def rezip_excel(folder_path, output_file):
                 # Preserve the internal structure of the Excel file
                 arcname = os.path.relpath(full_path, folder_path)
                 zip_ref.write(full_path, arcname)
+
+def extract_sheet_drawings(sheet_name):
+    # map sheet name to worksheet xml using the workbook.xml.rels
+
+    # check if sheet xml has a drawing tag. if so, use worksheet/_rels to get the file path of sheet drawings
+
+    # in the sheet drawings, find all xdr:oneCellAnchor or xdr:twoCellAnchor tags
+
+    # store each anchor tags, currently in its raw xml string first
+
+    # check if there is a drawing.xml.rels we need to parse too
+
+    # store all media images in memory or just write to disk immediately
+    
+    sheet_drawings = {
+        "1.a Screenshots": [
+            "<xdr:oneCellAnchor></xdr:oneCellAnchor>",
+            "<xdr:oneCellAnchor></xdr:oneCellAnchor>",
+        ]
+    }    
+
+    media = {
+        "image1.png": io.BytesIO(data),
+        "image2.png": io.BytesIO(data),
+    }
+
+    worksheet_rels = {
+        "sheet2.xml.rels": {
+            "Id1": {
+                "Type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image",
+                "Target": "../media/image2.jpg"
+            }
+        }
+    }
+
+    return
+
+def inject_sheet_drawings(sheet_name, sheet_drawings):
+    # unzip excel
+
+    # if there is at least 1 drawing, 
+    #   create a <drawing> tag in the end of the sheet xml 
+    #   create a .rels file in worksheets/_rels file that links to a drawings xml file in /drawings
+
+    # init drawings file with correct xml headers & schema
+
+    # add all sheet drawings xml to the drawing file
+
+    return
