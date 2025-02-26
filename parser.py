@@ -104,9 +104,11 @@ class ExcelParser:
                     #     ws.insert_image(i, j, cell.get("image"))
                         
         workbook.close()
+
         # re-add drawings
-        self.excel_helper.unzip_excel("excel/output.xlsx", "excel_xml/output")
-        self.excel_helper.inject_sheet_drawings(drawings_data)
+        self.excel_helper.unzip_excel(self.output_file, self.output_zip)
+        self.excel_helper.inject_sheet_drawings(drawings_data, self.output_zip)
+        self.excel_helper.rezip_excel(self.output_zip, self.output_file)
 
         return
 

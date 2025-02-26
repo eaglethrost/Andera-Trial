@@ -165,21 +165,21 @@ class ExcelHelper:
                 path = rel.get("Target")
                 return path
         
-    def inject_sheet_drawings(self, sheet_drawings):
-        # if there is at least 1 drawing, 
-        #   create a <drawing> tag in the end of the sheet xml 
-        #   create a .rels file in worksheets/_rels file that links to a drawings xml file in /drawings
+    def inject_sheet_drawings(self, sheet_drawings, output_zip_folder):
+        if len(sheet_drawings["drawings"]) > 0:
+            self.create_drawing_folders(output_zip_folder)
 
         # init drawings file with correct xml headers & schema
+        self.add_sheet_drawings(sheet_drawings["drawings"], output_zip_folder)
 
         # add all sheet drawings xml to the drawing file
 
         return
     
-    def create_drawing_folders():
-        # worksheet/_rels
-        # drawings
-        # drawings/_rels
+    def create_drawing_folders(self, output_zip_folder):
+        os.makedirs(f"{output_zip_folder}/xl/worksheets/_rels", exist_ok=True)
+        os.makedirs(f"{output_zip_folder}/xl/drawings", exist_ok=True)
+        os.makedirs(f"{output_zip_folder}/xl/drawings/_rels", exist_ok=True)
         return
     
     def add_sheet_rels(self):
@@ -190,12 +190,18 @@ class ExcelHelper:
         # put rel inside template
         return
     
-    def add_sheet_drawings(self):
-        # create drawing.xml file in drawings/
-
-        # create template
-
-        # add the string xmls to the template child
-
+    def add_sheet_drawings(self, drawings_data, output_zip_folder):
+        for i, (sheet_name, drawings) in enumerate(drawings_data.items()):
+            # create drawing.xml file in drawings/
+            print(i, " : ", sheet_name)
+            with open(f"{output_zip_folder}/xl/drawings/drawing{i+1}.xml", "w") as file:
+                # create template
+                header = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing"xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+                file.write(header)
+                # add the string xmls to the template child
+                for drawing in drawings:
+                    file.write(drawing)
+                closing = '</xdr:wsDr>'
+                file.write(closing)
         return
     
