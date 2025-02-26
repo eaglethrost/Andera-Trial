@@ -36,22 +36,22 @@ class ExcelHelper:
     def __init__(self):
         pass
 
-    def unzip_excel(file_path, extract_to):
+    def unzip_excel(self, input_file, zip_folder):
         """Unzip an Excel file (.xlsx) to a directory and get its underlying xmls"""
-        with zipfile.ZipFile(file_path, 'r') as zip_ref:
-            zip_ref.extractall(extract_to)
+        with zipfile.ZipFile(input_file, 'r') as zip_ref:
+            zip_ref.extractall(zip_folder)
 
-    def rezip_excel(folder_path, output_file):
+    def rezip_excel(self, zip_folder, output_file):
         """Recompress the folder back into a .xlsx file"""
         with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zip_ref:
-            for root, _, files in os.walk(folder_path):
+            for root, _, files in os.walk(zip_folder):
                 for file in files:
                     full_path = os.path.join(root, file)
                     # Preserve the internal structure of the Excel file
-                    arcname = os.path.relpath(full_path, folder_path)
+                    arcname = os.path.relpath(full_path, zip_folder)
                     zip_ref.write(full_path, arcname)
 
-    def extract_sheet_drawings(unzip_folder, sheet_name):
+    def extract_sheet_drawings(self, unzip_folder, sheet_name):
         # map sheet name to worksheet xml using the workbook.xml.rels
 
         # check if sheet xml has a drawing tag. if so, use worksheet/_rels to get the file path of sheet drawings
@@ -66,7 +66,7 @@ class ExcelHelper:
 
         return
 
-    def inject_sheet_drawings(sheet_name, sheet_drawings):
+    def inject_sheet_drawings(self, sheet_name, sheet_drawings):
         # unzip excel
 
         # if there is at least 1 drawing, 

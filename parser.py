@@ -8,10 +8,12 @@ import xml.etree.ElementTree as ET
 from helpers import SheetImages, ExcelHelper
 
 class ExcelParser:
-    def __init__(self, excel_helper, input_file, output_file):
-        self.excel_helper = excel_helper
+    def __init__(self, input_file, output_file):
         self.input_file = input_file
         self.output_file = output_file
+        self.input_zip = "excel_xml/sample_zip"
+        self.output_zip = "excel_xml/output_zip"
+        self.excel_helper = ExcelHelper( )
     
     def excel_to_xml(self):
         file_name = self.input_file
@@ -19,6 +21,7 @@ class ExcelParser:
         root = ET.Element("workbook", {"title": file_name})
 
         # unzip excel to process its xmls
+        self.excel_helper.unzip_excel(file_name, self.input_zip)
 
         for ws in wb.worksheets:
             sheet_name = ws.title
@@ -92,11 +95,8 @@ class ExcelParser:
 if __name__ == "__main__":
     input_file = "excel/sample.xlsx"
     output_file = "excel/output.xlsx"
-    sample_zip = "excel_xml/sample_zip"
-    sample_rezip = "excel_xml/sample_rezip.xlsx"
 
-    excel_helper = ExcelHelper()
-    excel_parser = ExcelParser(excel_helper, input_file, output_file)
+    excel_parser = ExcelParser(input_file, output_file)
 
     excel_parser.excel_to_xml()
-    excel_parser.xml_to_excel()
+    # excel_parser.xml_to_excel()
